@@ -64,7 +64,6 @@ DEFAULT_CONTROL_COLOR=(255, 0, 0)
 DEFAULT_TL1_COLOR=(255, 0, 0)
 DEFAULT_TL2_COLOR=(255, 0, 10)
 
-
 def draw_binax(
         control_color=DEFAULT_CONTROL_COLOR,
         tl_color=DEFAULT_TL1_COLOR,
@@ -74,9 +73,9 @@ def draw_binax(
         pixel_offset_value=0):
 
     strip = Image.new('RGB', STRIP_DIMENSIONS, color = DEFAULT_BACKGROUND_COLOR)
-    draw_rectangle(strip, CL_POSITION, control_color)
-    draw_rectangle(strip, TL1_POSITION, tl_color)
-    draw_rectangle(strip, TL2_POSITION, t2_color)
+    draw_line(strip, CL_POSITION, control_color)
+    draw_line(strip, TL1_POSITION, tl_color)
+    draw_line(strip, TL2_POSITION, t2_color)
     final_strip = strip.filter(ImageFilter.GaussianBlur(radius = 2))
     BINAX_NOW_PACKAGE_PIL_IMAGE.paste(final_strip, (int(STRIP_TOP_LEFT_POS_X), int(STRIP_TOP_LEFT_POS_Y)))
     BINAX_NOW_PACKAGE_PIL_IMAGE.save(output_name) # this is the full package with the strip on it
@@ -92,144 +91,81 @@ def draw_binax(
     cropped_image = full_image.crop((top_left_x, top_left_y, bottom_right_x, bottom_right_y))
     cropped_image.save(output_name)
 
-def draw_rectangle(pil_image, position, color):
+def draw_line(pil_image, position, color):
     line = ImageDraw.Draw(pil_image)
     line.rectangle(position, fill=color)
 
-### LABEL SHOULD BE 0 ###
-def generate_valid_test_no_malaria(sample_count = 1000, test_data = False):
+def generate_filename(label, sample, directory="data", ext="png"):
+    filename = directory + "/" + str(label) + "/" + str(sample) + "_" + str(label) + "." + ext
+    return filename
 
-    # the valid color range was decided based on manual inspection
-    valid_color_range = [(i, i, i) for i in range(250)]
-    invalid_color_range = [(i, i, i) for i in range(251, 256)]
+def get_random_color(color_min, color_max):
+    color = random.randrange(color_min, color_max, 1)
+    return (color, color, color)
 
+def get_colors(label):
+    if label == 0:
+        cl_color_min = 0
+        cl_color_max = 251
+        tl1_color_min = 251
+        tl1_color_max = 256
+        tl2_color_min = 251
+        tl2_color_max = 256
+    elif label == 1:
+        cl_color_min = 0
+        cl_color_max = 251
+        tl1_color_min = 0
+        tl1_color_max = 251
+        tl2_color_min = 251
+        tl2_color_max = 256
+    elif label == 2:
+        cl_color_min = 0
+        cl_color_max = 251
+        tl1_color_min = 251
+        tl1_color_max = 256
+        tl2_color_min = 0
+        tl2_color_max = 251
+    elif label == 3:
+        cl_color_min = 0
+        cl_color_max = 251
+        tl1_color_min = 0
+        tl1_color_max = 251
+        tl2_color_min = 0
+        tl2_color_max = 251
+    elif label == 4:
+        cl_color_min = 251
+        cl_color_max = 256
+        tl1_color_min = 0
+        tl1_color_max = 251
+        tl2_color_min = 0
+        tl2_color_max = 251
+    cl_color = get_random_color(cl_color_min, cl_color_max)
+    tl1_color = get_random_color(tl1_color_min, tl1_color_max)
+    tl2_color = get_random_color(tl2_color_min, tl2_color_max)
+    return (cl_color, tl1_color, tl2_color)
+
+"""
+    0:  control line
+    1:  control line + malarial strain 1
+    2:  control line + malarial strain 2
+    3:  control line + malarial strain 1 + malarial strain 2
+    4:  malarial strain 1 + malarial strain 2
+"""
+def generate_data(label, sample_count = 1000, test_data = False):
     for i in range(sample_count):
-        # sample the valid color range array for a color for control lines and the test lines
-        cl_color = random.choice(valid_color_range)
-        tl1_color = random.choice(invalid_color_range)
-        tl2_color = random.choice(invalid_color_range)
+        cl_color, tl1_color, tl2_color = get_colors(label)
+        filename = generate_filename(label, i)
 
-        # generate a filename
-        cl_str = text = '-'.join(str(x) for x in cl_color)
-        tl1_str = text = '-'.join(str(x) for x in tl1_color)
-        tl2_str = text = '-'.join(str(x) for x in tl2_color)
-        if test_data:
-            filename = 'test/0/' + str(i) + '_0.png'
-        else:
-            filename = 'train/0/' + str(i) + '_0.png'
-
-        # call draw_binax to generate the actual image
+        # generate image
         draw_binax(cl_color, tl1_color, tl2_color, filename)
 
-### LABEL SHOULD BE A 1###
-def generate_valid_test_t1_positive_only(sample_count = 1000, test_data = False):
-
-    # the valid and invalid color ranges were decided based on manual inspection
-    valid_color_range = [(i, i, i) for i in range(251)]
-    invalid_color_range = [(i, i, i) for i in range(251, 256)]
-
-    for i in range(sample_count):
-        if (i % 100 == 0):
-            print(i)
-        # sample the valid color range array for a color for control lines and the test lines
-        cl_color = random.choice(valid_color_range)
-        tl1_color = random.choice(valid_color_range)
-        tl2_color = random.choice(invalid_color_range)
-
-        # generate a filename
-        cl_str = text = '-'.join(str(x) for x in cl_color)
-        tl1_str = text = '-'.join(str(x) for x in tl1_color)
-        tl2_str = text = '-'.join(str(x) for x in tl2_color)
-        if test_data:
-            filename = 'test/1/' + str(i) + '_1.png'
-        else:
-            filename = 'train/1/' + str(i) + '_1.png'
-
-        # call draw_binax to generate the actual image
-        draw_binax(cl_color, tl1_color, tl2_color, filename)
-
-### LABEL SHOULD BE A 2###
-def generate_valid_test_t2_positive_only(sample_count = 1000, test_data = False):
-
-    # the valid and invalid color ranges were decided based on manual inspection
-    valid_color_range = [(i, i, i) for i in range(250)]
-    invalid_color_range = [(i, i, i) for i in range(251, 256)]
-
-    for i in range(sample_count):
-        # sample the valid color range array for a color for control lines and the test lines
-        cl_color = random.choice(valid_color_range)
-        tl1_color = random.choice(invalid_color_range)
-        tl2_color = random.choice(valid_color_range)
-
-        # generate a filename
-        cl_str = text = '-'.join(str(x) for x in cl_color)
-        tl1_str = text = '-'.join(str(x) for x in tl1_color)
-        tl2_str = text = '-'.join(str(x) for x in tl2_color)
-        if test_data:
-            filename = 'test/2/' + str(i) + '_2.png'
-        else:
-            filename = 'train/2/' + str(i) + '_2.png'
-
-        # call draw_binax to generate the actual image
-        draw_binax(cl_color, tl1_color, tl2_color, filename)
-
-
-### LABEL SHOULD BE A 3###
-def generate_valid_test_positive_for_both_malarias(sample_count = 1000, test_data = False):
-
-    # the valid color range was decided based on manual inspection
-    valid_color_range = [(i, i, i) for i in range(250)]
-
-    for i in range(sample_count):
-        # sample the valid color range array for a color for control lines and the test lines
-        cl_color = random.choice(valid_color_range)
-        tl1_color = random.choice(valid_color_range)
-        tl2_color = random.choice(valid_color_range)
-
-        # generate a filename
-        cl_str = text = '-'.join(str(x) for x in cl_color)
-        tl1_str = text = '-'.join(str(x) for x in tl1_color)
-        tl2_str = text = '-'.join(str(x) for x in tl2_color)
-        if test_data:
-            filename = 'test/3/' + str(i) + '_3.png'
-        else:
-            filename = 'train/3/' + str(i) + '_3.png'
-
-        # call draw_binax to generate the actual image
-        draw_binax(cl_color, tl1_color, tl2_color, filename)
-
-
-### LABEL SHOULD BE 4 ###
-def generate_invalid_randomize_positive(sample_count = 1000, test_data = False):
-    # the valid and invalid color ranges were decided based on manual inspection
-    full_color_range = [(i, i, i) for i in range(256)]
-    invalid_color_range = [(i, i, i) for i in range(250, 256)]
-
-    for i in range(sample_count):
-        if (i % 100 == 0):
-            print(i)
-        # sample the valid color range array for a color for control lines and the test lines
-        cl_color = random.choice(invalid_color_range)
-        tl1_color = random.choice(full_color_range)
-        tl2_color = random.choice(full_color_range)
-
-        # generate a filename
-        if test_data:
-            filename = 'test/4/' + str(i) + '_4.png'
-        else:
-            filename = 'train/4/' + str(i) + '_4.png'
-
-        # call draw_binax to generate the actual image
-        draw_binax(cl_color, tl1_color, tl2_color, filename)
 
 def generate_csv():
-    # train/label/instance_label.png
+    #data/label/instance_label.png
     with open("image_data.csv", "wt") as csvfile:
         filewriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         filewriter.writerow(['id', 'label'])
         for label in range(5):
-            for instance in range(1000):
-                image_name = 'train/' + str(label) + '/' + str(instance) + '_' + str(label) + '.png'
+            for instance in range(4000):
+                image_name = 'data/' + str(label) + '/' + str(instance) + '_' + str(label) + '.png'
                 filewriter.writerow([image_name, str(label)])
-
-generate_invalid_randomize_positive(1000)
