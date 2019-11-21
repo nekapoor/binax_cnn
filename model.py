@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.layers import Lambda, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.models import load_model
+from keras.preprocessing import image
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
@@ -87,14 +90,26 @@ def train(data, model):
 
     model.fit_generator(
             train_generator,
-            steps_per_epoch=500,
+            steps_per_epoch=1000,
             epochs=10,
             verbose=1,
             callbacks=[save_checkpoint, early_stoppage],
             validation_data=validation_generator,
-            validation_steps=50)
+            validation_steps=200)
+
+def predict(image_path="media_assets/test.png", model="model.h5"):
+    loaded_model = load_model(model)
+    img = image.load_img(image_path, target_size=(136, 203), color_mode="grayscale")
+    img = np.array(np.expand_dims(img, axis=2))
+    img = img[None, :]
+    result=loaded_model.predict_classes(img)
+    print("RESULT:  ", result[0])
 
 if __name__ == "__main__":
-    data = preprocess_data()
-    model = generate_model()
-    train(data, model)
+    mode = 0
+    if mode:
+        data = preprocess_data()
+        model = generate_model()
+        train(data, model)
+    else:
+        predict()
