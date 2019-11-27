@@ -159,7 +159,6 @@ def generate_data(label, sample_count = 1000, test_data = False):
         # generate image
         draw_binax(cl_color, tl1_color, tl2_color, filename)
 
-
 def generate_csv():
     #data/label/instance_label.png
     with open("image_data.csv", "wt") as csvfile:

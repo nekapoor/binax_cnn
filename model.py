@@ -97,13 +97,18 @@ def train(data, model):
             validation_data=validation_generator,
             validation_steps=200)
 
-def predict(image_path="media_assets/test.png", model="model.h5"):
+def predict(image_path="media_assets/test3.png", model="model.h5", render=True):
     loaded_model = load_model(model)
     img = image.load_img(image_path, target_size=(136, 203), color_mode="grayscale")
+    if render:
+        plt.imshow(img)
+        plt.show()
     img = np.array(np.expand_dims(img, axis=2))
     img = img[None, :]
-    result=loaded_model.predict_classes(img)
-    print("RESULT:  ", result[0])
+    result = loaded_model.predict_classes(img)
+    print("RESULT:      ", result[0])
+    result = loaded_model.predict(img)
+    print("PROB DISTR:  ", result)
 
 if __name__ == "__main__":
     mode = 0
@@ -112,4 +117,4 @@ if __name__ == "__main__":
         model = generate_model()
         train(data, model)
     else:
-        predict()
+        predict("media_assets/test3.png", "model.h5", False)
